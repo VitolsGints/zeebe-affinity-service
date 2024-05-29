@@ -1,6 +1,6 @@
 # Zeebe Node Affinity 
 
-This is a server and an enhanced Zeebe Node client (extending [zeebe-node](https://github.com/creditsenseau/zeebe-client-node-js)) to enable you to return the outcome of a Zeebe process in a synchronous REST req/res pattern.
+This is a server and an enhanced Zeebe Node client (extending [camunda8/sdk](https://github.com/camunda/camunda-8-js-sdk)) to enable you to return the outcome of a Zeebe process in a synchronous REST req/res pattern.
 
 It's a Proof-of-Concept, and not intended for production use without further testing.
 
@@ -8,25 +8,20 @@ You may initiate a process in Zeebe in response to a REST request, and want to r
 
 ## Version Compatibility
 
-For Zeebe 0.x, use [version 0.20 of this package](https://www.npmjs.com/package/zeebe-node-affinity/v/0.20.0).
+This package is created for the latest Zeebe versions (8.4.0 and newest)
 
 ## Install
 
-To install to your project, for Zeebe 1.x:
+To install to your project
 
-```
+```bash
 npm i zeebe-node-affinity
 ```
 
-For Zeebe 0.x:
-
-```
-npm i zeebe-node-affinity@0.20
-```
 
 ## Usage
 
-For Zeebe 0.x, refer to [the README for the 0.20 package](https://www.npmjs.com/package/zeebe-node-affinity/v/0.20.0).
+For older Zeebe versions, please refer to [the README for the old package](https://www.npmjs.com/package/zeebe-node-affinity/).
 
 ### Websocket
 
@@ -35,9 +30,17 @@ Zeebe Node Affinity uses a websocket server to distribute process outcomes to in
 ```typescript
 const { ZBAffinityClient } = require("zeebe-node-affinity");
 
-const zbc = new ZBAffinityClient("zeebe-broker:26500", {
-    affinityServiceUrl: "ws://zeebe-affinity-server:8080"
-});
+const options = {
+  affinityServiceUrl: 'ws://localhost:8089', // URL of the affinity service
+  affinityTimeout: 6000, // Timeout for the affinity service in milliseconds
+  config: {              // <-- This configuration is required by Camunda8/sdk ZeebeGrpcClient
+    ZEEBE_ADDRESS: "zeebe-broker:26500", // Address of the Zeebe broker
+    CAMUNDA_SECURE_CONNECTION: false, // Disable secure connection to Camunda
+    CAMUNDA_OAUTH_DISABLED: true, // Disable OAuth for Camunda
+  }
+};
+
+const zbc = new ZBAffinityClient(options);
 
 async function handleRequest(req, res) {
     const wfi =  await zbc.createProcessInstanceWithAffinity({
@@ -82,10 +85,17 @@ Here is the worker code:
 ```typescript
 const { ZBAffinityClient } = require("zeebe-node-affinity");
 
-const zbc = new ZBAffinityClient("zeebe-broker:26500", {
-    affinityServiceUrl: "ws://zeebe-affinity-server:8080",
-    affinityTimeout: 5000;
-});
+const options = {
+  affinityServiceUrl: 'ws://localhost:8089', // URL of the affinity service
+  affinityTimeout: 6000, // Timeout for the affinity service in milliseconds
+  config: {              // <-- This configuration is required by Camunda8/sdk ZeebeGrpcClient
+    ZEEBE_ADDRESS: "zeebe-broker:26500", // Address of the Zeebe broker
+    CAMUNDA_SECURE_CONNECTION: false, // Disable secure connection to Camunda
+    CAMUNDA_OAUTH_DISABLED: true, // Disable OAuth for Camunda
+  }
+};
+
+const zbc = new ZBAffinityClient(options);
 
 const afw = zbc.createAffinityWorker("publish-outcome")
                 .catch(e => console.log("Could not contact Affinity Server!"));
@@ -131,7 +141,7 @@ const { RedisAffinity } = require("zeebe-node-affinity");
 
 const zbcRedis = new RedisAffinity(ZEEBE_GATEWAY, { host: REDIS_HOST, password: REDIS_AUTH });
 
-const zbW = zbcRedis.createAffinityWorker('publish-outcome')
+const zbW = zbcRedis.createAffinityWorker({'publish-outcome'})
                 .catch(e => console.log("Could not create affinity worker!"));
 ```
 
@@ -165,43 +175,8 @@ In this Proof-of-Concept implementation, the Zeebe Affinity Service, however, mu
 
 ## Demo
 
-You can run a demo in the `demo`  directory. You will need three terminals.
-
-### Setup:
-- Git clone this repo
-- Run `npm i`
-
-### Terminal 1
-Start a Zeebe broker:
-
-```
-docker run -it --name zeebe -p 26500:26500 camunda/zeebe:0.20.0
-```
-
-### Terminal 2
-Start the Affinity Server:
-
-```
-cd demo
-node affinity-server.js
-```
-
-### Terminal 3
-Start the Affinity Worker:
-
-```
-cd demo
-node affinity-worker.js
-```
-
-### Terminal 4
-Start the demo workers / REST Server / REST Client:
-
-```
-cd demo
-node index.js
-```
-
+You can run a demo in the `demo`  directory. Please refer to the instructions attached to the Readme.md file.
+ 
 ## Using in your code
 
 You can install this from npm:

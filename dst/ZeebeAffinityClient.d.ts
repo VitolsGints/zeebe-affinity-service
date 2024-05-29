@@ -1,14 +1,33 @@
 /// <reference types="node" />
 import WebSocket from 'ws';
-import { ZBClient } from 'zeebe-node';
-import { JSONDoc } from 'zeebe-node';
-import { ZBClientOptions } from 'zeebe-node/dist/lib/interfaces-published-contract';
-import { ProcessOutcome } from './WebSocketAPI';
+import { // Function to register a worker with the affinity service
+ProcessOutcome } from './WebSocketAPI';
+import { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe';
+import { ZBClientOptions } from '@camunda8/sdk/dist/zeebe/lib/interfaces-published-contract';
+import { JSONDoc } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+export declare function filterVariables(variables: {
+    [key: string]: any;
+}): {
+    [key: string]: string | number;
+};
 interface ZBAffinityClientOptions extends ZBClientOptions {
     affinityServiceUrl: string;
     affinityTimeout: number;
+    config?: DeepPartial<{
+        zeebeGrpcSettings: {
+            ZEEBE_CLIENT_LOG_LEVEL: string;
+            ZEEBE_GRPC_CLIENT_EAGER_CONNECT: boolean;
+            ZEEBE_GRPC_CLIENT_RETRY: boolean;
+            ZEEBE_GRPC_CLIENT_MAX_RETRIES: number;
+            ZEEBE_GRPC_WORKER_POLL_INTERVAL_MS: number;
+        };
+        CAMUNDA_CONSOLE_CLIENT_SECRET: string | undefined;
+    }>;
 }
-export declare class ZBAffinityClient extends ZBClient {
+export declare class ZBAffinityClient extends ZeebeGrpcClient {
     affinityServiceUrl: string;
     affinityService: WebSocket;
     ws?: WebSocket;
@@ -16,8 +35,8 @@ export declare class ZBAffinityClient extends ZBClient {
         [processInstanceKey: string]: (processOutcome: ProcessOutcome) => void;
     };
     affinityTimeout: number;
-    pingTimeout: NodeJS.Timer;
-    constructor(gatewayAddress: string, options: ZBAffinityClientOptions);
+    pingTimeout: NodeJS.Timeout;
+    constructor(options: ZBAffinityClientOptions);
     createAffinityWorker(taskType: string): Promise<void>;
     createProcessInstanceWithAffinity<Variables extends JSONDoc>({ bpmnProcessId, variables, cb, }: {
         bpmnProcessId: string;

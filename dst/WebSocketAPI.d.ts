@@ -27,6 +27,8 @@ export declare function registerWorker(ws: WebSocket): void;
 export declare function registerClient(ws: WebSocket): void;
 export declare function broadcastProcessOutcome(clients: {
     [uuid: string]: WebSocket;
-}, processOutcome: ProcessOutcome): void;
+}, // Map of client WebSocket connections
+processOutcome: ProcessOutcome): void;
 export declare function demarshalProcessOutcome(data: Data): ProcessOutcome | undefined;
-export declare function publishProcessOutcomeToAffinityService(processOutcome: ProcessOutcome, ws: WebSocket): void;
+export declare function publishProcessOutcomeToAffinityService(processOutcome: ProcessOutcome, // Process outcome data to be published
+ws: WebSocket): void;
